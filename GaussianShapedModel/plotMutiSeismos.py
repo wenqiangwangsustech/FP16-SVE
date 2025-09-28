@@ -25,7 +25,7 @@ errorVersion = [version[3]]
 errorVersion = []
 standardVersion = version[0]
 
-ModelName = 'Half-Space Layered Media Model'
+ModelName = 'Gaussian-shaped Topography Model'
 
 colors 		= { version[0] : 'k', version[1] : 'r', version[2] : 'g', version[3] : 'b' }
 errorColors = { version[0] : 'k', version[1] : 'r', version[2] : 'g', version[3] : 'm' }
@@ -190,11 +190,11 @@ plt.yticks( StationTicks[:len(Keys)],  Keys )
 
 if len( Keys ) != 1:
 	if var == 'Vx':
-		plt.title( "%s Model: $v_x$"%ModelName )
+		plt.title( "%s: $v_x$"%ModelName )
 	if var == 'Vy':
-		plt.title( "%s Model: $v_y$"%ModelName )
+		plt.title( "%s: $v_y$"%ModelName )
 	if var == 'Vz':
-		plt.title( "%s Model: $v_z$"%ModelName )
+		plt.title( "%s: $v_z$"%ModelName )
 plt.xlabel( 't(s)'  )
 if len( Keys ) == 1:
 	plt.savefig( "png/%s_%s_%s.pdf"%(ModelName, Keys[0],  var), bbox_inches='tight'  )
