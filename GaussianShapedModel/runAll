@@ -8,8 +8,6 @@
 cp * ../
 
 cd ..
-mkdir numpyData
-
 
 python modifyParam.py
 
