@@ -16,16 +16,16 @@ import os
 var  = 'Vz' #Vy Vz
 Keys = ['A', 'B', 'C', 'D', 'E']
 KeyMove = {'A':0, 'B':1, 'C':2, 'D':3, 'E':4}
-#Keys = ['E']
-#KeyMove = { 'E' : 0 }
+Keys = ['E']
+KeyMove = { 'E' : 0 }
 amplifyError = 100
 
 version = ["FP32-CGFDM", "FP16-CGFDM", "FP32-SVE", "FP16-SVE"]
 errorVersion = [version[3]]
-errorVersion = []
+#errorVersion = []
 standardVersion = version[0]
 
-ModelName = 'Gaussian-shaped Topography Model'
+ModelName = 'Gaussian-Shaped Topography Model'
 
 colors 		= { version[0] : 'k', version[1] : 'r', version[2] : 'g', version[3] : 'b' }
 errorColors = { version[0] : 'k', version[1] : 'r', version[2] : 'g', version[3] : 'm' }
@@ -144,7 +144,9 @@ for ver in range(len(version)):
 	stationData = versionStationData[version[ver]]
 	errorData = { }
 	for key_it in Keys:
-		 errorData[key_it] = stationData[key_it] - standardData[key_it]
+		np.save( "./numpyData/%s_%s.npy"%(standardVersion, key_it), standardData[key_it])
+		np.save( "./numpyData/%s_%s.npy"%(version[ver], key_it), stationData[key_it])
+		errorData[key_it] = stationData[key_it] - standardData[key_it]
 	versionErrorData[ver] = errorData
 
 
