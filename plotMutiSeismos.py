@@ -14,34 +14,24 @@ import  sys
 import os
 
 var  = 'Vz' #Vy Vz
-Keys = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
-KeyMove = { }
+Keys = ['A', 'B', 'C', 'D', 'E']
+KeyMove = {'A':0, 'B':1, 'C':2, 'D':3, 'E':4}
+Keys = ['E']
+KeyMove = { 'E' : 0 }
+amplifyError = 100
 
-
-disWid = 0.8
-i = 0
-for key in Keys:
-	KeyMove[key] = i
-	i += disWid
-
-#Keys = ['I']
-#KeyMove = { 'I' : 0 }
-amplifyError = 1
-
-
-
-version = ["FP32-CGFDM", "FP16-SVE"]
-#errorVersion = [version[1]]
-errorVersion = []
+version = ["FP32-CGFDM", "FP16-CGFDM", "FP32-SVE", "FP16-SVE"]
+errorVersion = [version[3]]
+#errorVersion = []
 standardVersion = version[0]
 
-ModelName = 'Xizang Earthquake'
+ModelName = 'Half-Space Multi-Layered Media Model'
 
-colors 		= { version[0] : 'k', version[1] : 'b' }
-errorColors = { version[0] : 'k', version[1] : 'm' }
+colors 		= { version[0] : 'k', version[1] : 'r', version[2] : 'g', version[3] : 'b' }
+errorColors = { version[0] : 'k', version[1] : 'r', version[2] : 'g', version[3] : 'm' }
 
-linesStyle  	 = { version[0] : '-', version[1] : ':' }     
-errorLinesStyle  = { version[0] : '-', version[1] : '-' } 
+linesStyle  	 = { version[0] : '-', version[1] : '--', version[2] : '-.', version[3] : ':' }     
+errorLinesStyle  = { version[0] : '-', version[1] : '-.', version[2] : '-', version[3] : '-' } 
 
 #version = ["FP32-CGFDM"]
 
@@ -133,7 +123,6 @@ for ver in range(len(version)):
 							if xidx == XIndex[i] and yidx == YIndex[i] and zidx == ZIndex[i]:
 								stationData[key_it] = dataRe[i, :, varId]
 								print( "key = %s, X = %d, Y = %d, Z = %d" % ( key_it, xidx, yidx, zidx ) )
-	print(version[ver])
 	versionStationData[version[ver]] = stationData
 
 vmax = 0.0
@@ -155,13 +144,15 @@ for ver in range(len(version)):
 	stationData = versionStationData[version[ver]]
 	errorData = { }
 	for key_it in Keys:
-		 errorData[key_it] = stationData[key_it] - standardData[key_it]
+		np.save( "./numpyData/%s_%s.npy"%(standardVersion, key_it), standardData[key_it])
+		np.save( "./numpyData/%s_%s.npy"%(version[ver], key_it), stationData[key_it])
+		errorData[key_it] = stationData[key_it] - standardData[key_it]
 	versionErrorData[ver] = errorData
 
 
 if len( Keys ) > 1:
 	plt.figure( figsize = ( 10.3, len(Keys) * 2) )
-	zoom = 2
+	zoom = 1
 else:
 	plt.figure( figsize = ( 10.3, 2.4) )
 	zoom = 1.5
@@ -175,25 +166,25 @@ for ver in range(len(version)):
 		data = stationData[key_it]
 		err = errorData[key_it] * amplifyError
 		if key_it == Keys[0]:
-			plt.plot( t,  data / vmax * zoom + KeyMove[key_it], color = colors[version[ver]], ls = linesStyle[version[ver]], label = version[ver], linewidth = lineWidth )
+			plt.plot( t,  data / vmax * zoom + KeyMove[key_it] * zoom, color = colors[version[ver]], ls = linesStyle[version[ver]], label = version[ver], linewidth = lineWidth )
 			if version[ver] in errorVersion:
-				plt.plot( t,  err  / vmax * zoom + KeyMove[key_it], color = errorColors[version[ver]], ls = errorLinesStyle[version[ver]], label = version[ver] + ' Errors $\\times$ %.0f'%amplifyError, linewidth = lineWidth )
+				plt.plot( t,  err  / vmax * zoom + KeyMove[key_it] * zoom, color = errorColors[version[ver]], ls = errorLinesStyle[version[ver]], label = version[ver] + ' Errors $\\times$ %.0f'%amplifyError, linewidth = lineWidth )
 		else:
-			plt.plot( t,  data / vmax * zoom + KeyMove[key_it], color = colors[version[ver]], ls = linesStyle[version[ver]], linewidth = lineWidth )
+			plt.plot( t,  data / vmax * zoom + KeyMove[key_it] * zoom, color = colors[version[ver]], ls = linesStyle[version[ver]], linewidth = lineWidth )
 			if version[ver] in errorVersion:
-				plt.plot( t,  err  / vmax * zoom + KeyMove[key_it], color = errorColors[version[ver]], ls = errorLinesStyle[version[ver]], linewidth = lineWidth )
+				plt.plot( t,  err  / vmax * zoom + KeyMove[key_it] * zoom, color = errorColors[version[ver]], ls = errorLinesStyle[version[ver]], linewidth = lineWidth )
 		if version[ver] == standardVersion:
-			plt.text( TMAX * 0.85, KeyMove[key_it]+ 0.05, "%.2fcm/s" % np.max( np.abs( data * 100 ) ), fontsize = 14 )
+			plt.text( TMAX * 0.85, KeyMove[key_it] + 0.05, "%.2fcm/s" % np.max( np.abs( data * 100 ) ) )
 			pass
 
 
-plt.legend( loc = 1, frameon = False,  ncol = len(version) + len(errorVersion), fontsize = 16 ) 
+plt.legend( loc = 1, frameon = False,  ncol = len(version) + len(errorVersion)) 
 
-StationTicks = np.arange( 0, len(Keys) ) * disWid
+StationTicks = np.arange( 0, len(Keys) ) * zoom
 if len( Keys ) == 1:
 	plt.gca( ).set_ylim( [-1.5, StationTicks[-1] + 1.5 ] )
 else:
-	plt.gca( ).set_ylim( [-0.3, StationTicks[-1] + 0.5 ] )
+	plt.gca( ).set_ylim( [-1., StationTicks[-1] + 0.5 ] )
 
 plt.gca( ).set_xlim( [0, TMAX] )
 plt.yticks( StationTicks[:len(Keys)],  Keys )
@@ -201,11 +192,11 @@ plt.yticks( StationTicks[:len(Keys)],  Keys )
 
 if len( Keys ) != 1:
 	if var == 'Vx':
-		plt.title( "%s Model: $v_x$"%ModelName, fontsize = 16 )
+		plt.title( "%s: $v_x$"%ModelName )
 	if var == 'Vy':
-		plt.title( "%s Model: $v_y$"%ModelName, fontsize = 16 )
+		plt.title( "%s: $v_y$"%ModelName )
 	if var == 'Vz':
-		plt.title( "%s Model: $v_z$"%ModelName, fontsize = 16 )
+		plt.title( "%s: $v_z$"%ModelName )
 plt.xlabel( 't(s)'  )
 if len( Keys ) == 1:
 	plt.savefig( "png/%s_%s_%s.pdf"%(ModelName, Keys[0],  var), bbox_inches='tight'  )
